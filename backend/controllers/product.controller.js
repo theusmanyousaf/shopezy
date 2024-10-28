@@ -59,3 +59,26 @@ export const createProduct = async (req, res) => {
         res.status(500).json({ message: "server error", error: error.message });
     }
 }
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        if(product.image) {
+            const productId = product.image.split('/').pop().split('.')[0];
+            try {
+                await cloudinary.uploader.destroy(`products/${productId}`);
+                console.log("Product image deleted successfully from cloudinary");
+            } catch (error) {
+                console.log("Error in deleting product image from cloudinary", error);
+            }
+        }
+        await Product.findByIdAndDelete(req.params.id);
+        res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+        console.log("Error in deleteProduct controller", error);
+        res.status(500).json({ message: "server error", error: error.message });
+    }
+}
