@@ -27,6 +27,8 @@ const setCookies = (res, accessToken, refreshToken) => {
     })
 }
 
+{/* SignUp */}
+
 export const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -54,11 +56,27 @@ export const signup = async (req, res) => {
     }
 }
 
+{/* Login */}
+
 export const login = async (req, res) => {
     res.send("login route called")
 }
 
+{/* Logout */}
+
 export const logout = async (req, res) => {
-    res.send("logout route called")
+    try {
+        const { refreshToken } = req.cookies;
+        if (refreshToken) {
+            const docoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+            await redis.del(`refresh_token:${docoded.userId}`);
+        }
+
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        res.json({ message: "User logged out successfully" });
+    } catch (error) {
+        res.status(500).send({ message: "server error", error: error.message });
+    }
 }
 
