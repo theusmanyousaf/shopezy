@@ -15,19 +15,19 @@ const storeRefreshToken = async (userId, refreshToken) => {
 const setCookies = (res, accessToken, refreshToken) => {
     res.cookie('accessToken', accessToken, {
         httpOnly: true, // prevent XSS attacks(cross site scripting attacks), make it unaccessable to javascript
-        secure: process.env.NODE_ENV !== 'development', // only send cookie over https
+        secure: process.env.NODE_ENV === 'production', // only send cookie over https
         sameSite: 'strict', // prevent CSRF attacks, cross-site request forgery
         maxAge: 15 * 60 * 1000 // 15 minutes
     })
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true, // prevent XSS attacks(cross site scripting attacks), make it unaccessable to javascript
-        secure: process.env.NODE_ENV !== 'development', // only send cookie over https
+        secure: process.env.NODE_ENV === 'production', // only send cookie over https
         sameSite: 'strict', // prevent CSRF attacks, cross-site request forgery
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
 }
 
-{/* SignUp */}
+{/* SignUp */ }
 
 export const signup = async (req, res) => {
     try {
@@ -41,28 +41,48 @@ export const signup = async (req, res) => {
         const user = await User.create({ name, email, password });
 
         // authenticate user
-        const {accessToken, refreshToken} = generateTokens(user._id)
+        const { accessToken, refreshToken } = generateTokens(user._id)
         storeRefreshToken(user._id, refreshToken)
         setCookies(res, accessToken, refreshToken)
 
-        res.status(201).send({ user: {
+        res.status(201).send({
             _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role
-        }, message: "User created successfully" });
+        });
     } catch (error) {
+        console.log("Error in signup controller", error);
         res.status(500).send({ error: error.message });
     }
 }
 
-{/* Login */}
+{/* Login */ }
 
 export const login = async (req, res) => {
-    res.send("login route called")
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (user && (await user.comparePassword(password))) {
+            const { accessToken, refreshToken } = generateTokens(user._id)
+            await storeRefreshToken(user._id, refreshToken)
+            setCookies(res, accessToken, refreshToken)
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            })
+        } else {
+            res.status(401).send({ error: "Invalid credentials" })
+        }
+    } catch (error) {
+        console.log("Error in login controller", error);
+        res.status(500).send({ error: error.message });
+    }
 }
 
-{/* Logout */}
+{/* Logout */ }
 
 export const logout = async (req, res) => {
     try {
@@ -76,6 +96,7 @@ export const logout = async (req, res) => {
         res.clearCookie("refreshToken");
         res.json({ message: "User logged out successfully" });
     } catch (error) {
+        console.log("Error in logout controller", error);
         res.status(500).send({ message: "server error", error: error.message });
     }
 }
