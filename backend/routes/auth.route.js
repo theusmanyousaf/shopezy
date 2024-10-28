@@ -7,5 +7,6 @@ router.post("/signup", signup)
 router.post("/login", login)
 router.post("/logout", logout)
 router.post("/refresh-token", refreshToken)
+// router.get("/profile", protectRoutes , getProfile) // for getting user profile
 
 export default router;
