@@ -101,3 +101,34 @@ export const logout = async (req, res) => {
     }
 }
 
+{/* Refresh Token */ }
+
+// this will recreate the access token when it expires
+export const refreshToken = async (req, res) => {
+    try {
+        // once accessToken expires, we need to provide refreshToken to create a new accessToken
+        const { refreshToken } = req.cookies;
+        if (!refreshToken) return res.status(401).json({ msg: "No refreshToken provided" });
+
+        const docoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        const storedToken = await redis.get(`refresh_token:${docoded.userId}`);
+
+        if (storedToken !== refreshToken) {
+            return res.status(401).json({ msg: "Refresh token is not valid" });
+        }
+
+        const accessToken = jwt.sign({ userId: docoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 15 * 60 * 1000
+        })
+
+        res.json({ message: "Token refreshed successfully" });
+    }
+    catch (error) {
+        console.log("Error in refreshToken controller", error);
+        res.status(500).send({ message: "server error", error: error.message });
+    }
+}
