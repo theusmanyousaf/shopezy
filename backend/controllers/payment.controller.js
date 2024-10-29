@@ -1,4 +1,5 @@
 import Coupon from '../models/coupon.model.js';
+import Order from "../models/order.model.js";
 import { stripe } from '../lib/stripe.js';
 
 export const createCheckoutSession = async (req, res) => {
@@ -50,7 +51,13 @@ export const createCheckoutSession = async (req, res) => {
             metadata: {
                 userId: req.user._id.toString(),
                 couponCode: coupon?.code || "",
-
+                products: JSON.stringify(
+                    products.map(p => ({
+                        id: p._id,
+                        quantity: p.quantity,
+                        price: p.price
+                    }))
+                ),
             }
         });
 
@@ -62,6 +69,47 @@ export const createCheckoutSession = async (req, res) => {
     } catch (error) {
         console.log("Error in createCheckoutSession controller", error);
         res.status(500).json({ message: "server error", error: error.message });
+    }
+}
+
+export const checkoutSuccess = async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        if (session.payment_status === 'paid') {
+            if (session.metadata.couponCode) {
+                await Coupon.findOneAndUpdate({
+                    code: session.metadata.couponCode,
+                    userId: session.metadata.userId
+                }, {
+                    isActive: false
+                })
+            }
+
+            // CREATE A NEW ORDER
+            const products = JSON.parse(session.metadata.products);
+            const newOrder = new Order({
+                user: session.metadata.userId,
+                products: products.map(product => ({
+                    productId: product.id,
+                    quantity: product.quantity,
+                    price: product.price
+                })),
+                totalAmount: session.amount_total / 100, // convert cents to dollars
+                stripeSessionId: sessionId
+            })
+
+            await newOrder.save();
+            res.status(200).json({
+                success: true,
+                message: "Payment successful, order created, and coupon deactivated if used.",
+                orderId: newOrder._id
+            })
+        }
+    } catch (error) {
+        console.log("Error processing successful checkout", error);
+        res.status(500).json({ message: "Error processing successful checkout", error: error.message });
     }
 }
 
