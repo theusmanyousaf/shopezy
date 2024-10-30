@@ -35,7 +35,7 @@ export const signup = async (req, res) => {
         const userExists = await User.findOne({ email });
 
         if (userExists) {
-            return res.status(400).json({ msg: "User already exists" })
+            return res.status(400).json({ message: "User already exists" })
         }
 
         const user = await User.create({ name, email, password });
@@ -108,13 +108,13 @@ export const refreshToken = async (req, res) => {
     try {
         // once accessToken expires, we need to provide refreshToken to create a new accessToken
         const { refreshToken } = req.cookies;
-        if (!refreshToken) return res.status(401).json({ msg: "No refreshToken provided" });
+        if (!refreshToken) return res.status(401).json({ message: "No refreshToken provided" });
 
         const docoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
         const storedToken = await redis.get(`refresh_token:${docoded.userId}`);
 
         if (storedToken !== refreshToken) {
-            return res.status(401).json({ msg: "Refresh token is not valid" });
+            return res.status(401).json({ message: "Refresh token is not valid" });
         }
 
         const accessToken = jwt.sign({ userId: docoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });

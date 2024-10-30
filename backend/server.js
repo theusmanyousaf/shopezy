@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import authRoutes from './routes/auth.route.js';
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
@@ -16,6 +17,11 @@ const app = express();
 // middleware
 app.use(express.json());
 app.use(cookieParser()); // for cookies access
+app.use(cors({
+    origin: 'http://localhost:5173', // Allow your frontend origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+    credentials: true // Include this if you need to send cookies or headers like authorization
+}));
 
 // routes
 app.use('/api/auth', authRoutes)
