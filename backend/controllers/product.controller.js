@@ -122,9 +122,9 @@ export const toggleFeaturedProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (product) {
             product.isFeatured = !product.isFeatured;
-            await product.save();
+            const updatedProduct = await product.save();
             await updateFeaturedProductsCache();
-            res.json({ message: "Product featured status updated successfully" });
+            res.json(updatedProduct);
         } else {
             return res.status(404).json({ message: "Product not found" });
         }
