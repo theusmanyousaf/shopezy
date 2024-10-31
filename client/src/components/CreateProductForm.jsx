@@ -18,8 +18,12 @@ const CreateProductForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await createProduct(newProduct);
-        setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
+        try {
+            await createProduct(newProduct);
+            setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
+        } catch {
+            console.log("error creating a product");
+        }
     };
 
     const handleImageChange = (e) => {

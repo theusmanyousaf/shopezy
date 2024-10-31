@@ -15,7 +15,7 @@ dotenv.config();
 const app = express();
 
 // middleware
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser()); // for cookies access
 app.use(cors({
     origin: 'http://localhost:5173', // Allow your frontend origin
