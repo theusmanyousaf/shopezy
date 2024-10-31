@@ -20,7 +20,6 @@ const CreateProductForm = () => {
         e.preventDefault();
         await createProduct(newProduct);
         setNewProduct({ name: "", description: "", price: "", category: "", image: "" });
-
     };
 
     const handleImageChange = (e) => {
