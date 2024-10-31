@@ -100,7 +100,7 @@ export const getRecommendedProducts = async (req, res) => {
             }
         ])
 
-        res.json({ products });
+        res.json(products);
     } catch (error) {
         console.log("Error in getRecommendedProducts controller", error);
         res.status(500).json({ message: "server error", error: error.message });
