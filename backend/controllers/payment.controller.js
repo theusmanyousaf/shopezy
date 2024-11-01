@@ -78,7 +78,7 @@ export const checkoutSuccess = async (req, res) => {
         const { sessionId } = req.body;
         const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-        if (session.payment_status === "paid") {
+        if (session.payment_status === 'paid') {
             if (session.metadata.couponCode) {
                 await Coupon.findOneAndUpdate(
                     {
@@ -101,7 +101,7 @@ export const checkoutSuccess = async (req, res) => {
                     price: product.price,
                 })),
                 totalAmount: session.amount_total / 100, // convert from cents to dollars,
-                stripeSessionId: sessionId,
+                stripeSessionId: session.id,
             });
 
             await newOrder.save();

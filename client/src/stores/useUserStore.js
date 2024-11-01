@@ -20,7 +20,7 @@ export const useUserStore = create((set, get) => ({
             set({ user: res.data, loading: false });
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response.data.message || "An error occurred");
+            toast.error(error.response?.data?.message || "An error occurred");
         }
     },
 
@@ -33,7 +33,7 @@ export const useUserStore = create((set, get) => ({
             set({ user: res.data, loading: false });
         } catch (error) {
             set({ loading: false });
-            toast.error(error.response.data.message || "An error occurred");
+            toast.error(error.response?.data?.message || "An error occurred");
         }
     },
 
@@ -74,8 +74,6 @@ export const useUserStore = create((set, get) => ({
 
 }));
 
-// TODO: Implement axios interceptors
-
 // Axios interceptor for token refresh
 let refreshPromise = null;
 
@@ -100,7 +98,7 @@ axios.interceptors.response.use(
 
                 return axios(originalRequest);
             } catch (refreshError) {
-                // If refresh fails, redirect to login or handle as needed
+                refreshPromise = null; // Ensure the promise is reset on failure
                 useUserStore.getState().logout();
                 return Promise.reject(refreshError);
             }
