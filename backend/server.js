@@ -8,11 +8,14 @@ import couponRoutes from './routes/coupon.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import analyticsRoutes from './routes/analytics.route.js';
 import { connectDB } from './lib/db.js';
+import path from 'path';
 import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
 const app = express();
+
+const __dirname = path.resolve();
 
 // middleware
 app.use(express.json({ limit: "5mb" }));
@@ -30,6 +33,14 @@ app.use('/api/cart', cartRoutes)
 app.use('/api/coupons', couponRoutes)
 app.use('/api/payments', paymentRoutes)
 app.use('/api/analytics', analyticsRoutes)
+
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static(path.join(__dirname, "/client/dist")));
+
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
+	});
+}
 
 const port = process.env.PORT || 5000;
 
