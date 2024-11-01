@@ -30,7 +30,10 @@ export const getDailySalesData = async (startDate, endDate) => {
         const dailySalesData = await Order.aggregate([
             {
                 $match: {
-                    createdAt: { $gte: startDate, $lte: endDate }
+                    createdAt: {
+                        $gte: startDate,
+                        $lte: endDate,
+                    }
                 }
             },
             {
@@ -40,9 +43,7 @@ export const getDailySalesData = async (startDate, endDate) => {
                     revenue: { $sum: "$totalAmount" }
                 }
             },
-            {
-                $sort: { _id: 1 },
-            }
+            { $sort: { _id: 1 } },
         ])
 
         const dateArray = getDatesInRange(startDate, endDate);
@@ -51,8 +52,8 @@ export const getDailySalesData = async (startDate, endDate) => {
             const foundData = dailySalesData.find(item => item._id === date)
             return {
                 date,
-                sales: foundData ? foundData.sales : 0,
-                revenue: foundData ? foundData.revenue : 0
+                sales: foundData?.sales || 0,
+                revenue: foundData?.revenue || 0
             }
         })
     } catch (error) {
@@ -62,10 +63,10 @@ export const getDailySalesData = async (startDate, endDate) => {
 
 function getDatesInRange(startDate, endDate) {
     const dates = [];
-    const currentDate = new Date(startDate);
+    let currentDate = new Date(startDate);
 
     while (currentDate <= endDate) {
-        dates.push(new Date(currentDate.toISOString().split("T")[0]));
+        dates.push(currentDate.toISOString().split("T")[0]);
         currentDate.setDate(currentDate.getDate() + 1);
     }
 
