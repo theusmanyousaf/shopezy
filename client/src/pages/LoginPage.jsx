@@ -13,7 +13,6 @@ const LoginPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     login(email, password);
-    console.log(email, password);
   };
 
   return (
