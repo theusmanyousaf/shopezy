@@ -21,7 +21,7 @@ const __dirname = path.resolve();
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser()); // for cookies access
 app.use(cors({
-    origin: 'http://localhost:5173', // Allow your frontend origin
+    origin: `${process.env.CLIENT_URL}`, // Allow your frontend origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Specify allowed methods
     credentials: true // Include this if you need to send cookies or headers like authorization
 }));
