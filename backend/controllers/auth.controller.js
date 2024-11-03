@@ -136,8 +136,9 @@ export const refreshToken = async (req, res) => {
 {/* Get User Profile */ }
 
 export const getProfile = async (req, res) => {
+    const user = req.user;
     try {
-        res.json(req.user);
+        res.json(user);
     } catch (error) {
         res.status(500).send({ message: "server error", error: error.message });
     }

@@ -8,23 +8,29 @@ import couponRoutes from './routes/coupon.route.js';
 import paymentRoutes from './routes/payment.route.js';
 import analyticsRoutes from './routes/analytics.route.js';
 import { connectDB } from './lib/db.js';
-import path from 'path';
 import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
 const app = express();
 
-const __dirname = path.resolve();
-
 // middleware
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser()); // for cookies access
-app.use(cors({
-    origin: `${process.env.CLIENT_URL}`, // Allow your frontend origin
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Specify allowed methods
-    credentials: true // Include this if you need to send cookies or headers like authorization
-}));
+// Custom CORS Headers
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || '*'); // Change * to CLIENT_URL for stricter control
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+    // Handle preflight (OPTIONS) requests
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    next();
+});
 
 // routes
 app.use('/api/auth', authRoutes)
@@ -33,18 +39,8 @@ app.use('/api/cart', cartRoutes)
 app.use('/api/coupons', couponRoutes)
 app.use('/api/payments', paymentRoutes)
 app.use('/api/analytics', analyticsRoutes)
+app.get('/', (req, res) => { res.send('Hello World!') })
 
-if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "/client/dist")));
+connectDB();
 
-	app.get("*", (req, res) => {
-		res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
-	});
-}
-
-const port = process.env.PORT || 5000;
-
-app.listen(port, () => {
-    connectDB();
-    console.log(`Server is running on http://localhost:${port}`);
-})
+export default app;
