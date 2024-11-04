@@ -22,9 +22,9 @@ export const addToCart = async (req, res) => {
 
 export const removeAllProducts = async (req, res) => {
     try {
-        const {productId} = req.body;
+        const { productId } = req.body;
         const user = req.user;
-        if(!productId){
+        if (!productId) {
             user.cartItems = [];
         } else {
             user.cartItems = user.cartItems.filter((item) => item.id !== productId);
@@ -40,29 +40,28 @@ export const removeAllProducts = async (req, res) => {
 export const getCartProducts = async (req, res) => {
     try {
         const products = await Product.find({ _id: { $in: req.user.cartItems } });
-        // add quantity property to each product
-        const cartItems = products.map((product) => {
-            const item = req.user.cartItems.find(item => item.id === product.id);
-            return {
-                ...product.toJSON(),
-                quantity: item.quantity
-            }
-        })
+
+        // add quantity for each product
+        const cartItems = products?.map((product) => {
+            const item = req.user.cartItems.find((cartItem) => cartItem.id === product.id);
+            return { ...product.toJSON(), quantity: item.quantity };
+        });
+
         res.json(cartItems);
     } catch (error) {
-        console.log("Error in getCartProducts controller", error);
-        res.status(500).json({ message: "server error", error: error.message });
+        console.log("Error in getCartProducts controller", error.message);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
 
 export const updateProductQuantity = async (req, res) => {
     try {
         const productId = req.params.id;
-        const {quantity} = req.body;
+        const { quantity } = req.body;
         const user = req.user;
         const existingItem = user.cartItems.find(item => item.id === productId);
-        if(existingItem) {
-            if(quantity === 0) {
+        if (existingItem) {
+            if (quantity === 0) {
                 user.cartItems = user.cartItems.filter((item) => item.id !== productId);
                 await user.save();
                 return res.json(user.cartItems);

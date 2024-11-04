@@ -16,7 +16,7 @@ const setCookies = (res, accessToken, refreshToken) => {
     res.cookie('accessToken', accessToken, {
         httpOnly: true, // prevent XSS attacks(cross site scripting attacks), make it unaccessable to javascript
         secure: process.env.NODE_ENV === 'production', // only send cookie over https
-        sameSite: 'strict', // prevent CSRF attacks, cross-site request forgery
+        sameSite: 'none', // prevent CSRF attacks, cross-site request forgery
         maxAge: 15 * 60 * 1000 // 15 minutes
     })
     res.cookie('refreshToken', refreshToken, {
